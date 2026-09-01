@@ -1,8 +1,8 @@
-const mongo= require('mongoose');
+const mongoose = require('mongoose');
 
-export const connectDB = async() =>{
+module.exports.connectDB = async() =>{
     try{
-        await mongo.connect(process.env.mongo_url,{
+        await mongoose.connect(process.env.mongo_url,{
             useNewUrlParser:true,
             useUnifiedTopology:true,
         });

@@ -11,7 +11,7 @@ const http = require('http');
 
 require('dotenv').config();
 
-const {connectDB}= require('./config/mongo.connexion.js');
+const {connectDB}= require('./config/mongo.connexion');
 
 var app = express();
 
