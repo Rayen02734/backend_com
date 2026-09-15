@@ -6,12 +6,18 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var adminsRouter = require('./routes/admin.routes');
+var guestsRouter = require('./routes/guests.routes');
+var commandesRouter = require('./routes/commandes.routes');
+var lignesCommandeRouter = require('./routes/lignesCommande.routes');
+var paiementsRouter = require('./routes/paiements.routes');
+var produitsRouter = require('./routes/produits.routes');
 
 const http = require('http');
 
 require('dotenv').config();
 
-const {connectDB}= require('./config/mongo.connexion');
+const { connectDB }= require('./config/mongo.connexion');
 
 var app = express();
 
@@ -24,8 +30,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
+app.use('/admins', adminsRouter);
+app.use('/guests', guestsRouter);
+app.use('/commandes', commandesRouter);
+app.use('/lignes-commandes', lignesCommandeRouter);
+app.use('/paiements', paiementsRouter);
+app.use('/produits', produitsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -49,4 +60,4 @@ server.listen(process.env.port,()=>{
   console.log(`Server is running on port ${process.env.port}`);
 });
 
-module.exports = app;
+
