@@ -40,7 +40,7 @@ module.exports. updateProduit = async (req, res) => {
     const filter = getIdFilter(req.params.id);
     if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
 
-    const produit = await populateProduit(Produit.findOneAndUpdate(filter, req.body, {
+    const produit = await populateProduit(ProduitModel.findOneAndUpdate(filter, req.body, {
       new: true,
       runValidators: true
     }));

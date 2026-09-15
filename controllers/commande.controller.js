@@ -57,7 +57,7 @@ const deleteCommande = async (req, res) => {
     const filter = getIdFilter(req.params.id);
     if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
 
-    const commande = await Commande.findOneAndDelete(filter);
+    const commande = await CommandeModel.findOneAndDelete(filter);
     if (!commande) return res.status(404).json({ message: 'Commande introuvable.' });
 
     return res.status(204).send();
