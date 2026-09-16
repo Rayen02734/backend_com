@@ -3,11 +3,24 @@ const ProduitModel = require('../models/produit.model');
 const CommandeModel = require('../models/commande.model');
 const { analyserBoutique } = require('../services/IA.service');
 const { getIdFilter, handleControllerError } = require('./utils.controller');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = '8h';
+
+const withoutPassword = (admin) => {
+    const data = admin.toObject();
+    delete data.password;
+    return data;
+};
 
 module.exports.createAdmin = async (req, res) => {
     try {
-        const admin = await AdminModel.create(req.body);
-        return res.status(201).json(admin);
+        const data = { ...req.body };
+        data.password = await bcrypt.hash(data.password, 12);
+        const admin = await AdminModel.create(data);
+        return res.status(201).json(withoutPassword(admin));
     } catch (error) {
         return handleControllerError(res, error);
     }
@@ -368,5 +381,40 @@ module.exports.consulterAnalyse = async (req, res) => {
             res,
             error
         );
+    }
+};
+
+module.exports.loginAdmin = async (req, res) => {
+    try {
+        const { mail, password } = req.body;
+        if (!mail || !password) {
+            return res.status(400).json({ message: 'Mail et mot de passe obligatoires.' });
+        }
+        if (!JWT_SECRET) {
+            return res.status(500).json({ message: 'JWT_SECRET non configure.' });
+        }
+
+        const admin = await AdminModel.findOne({ mail: mail.toLowerCase().trim() });
+        if (!admin) return res.status(401).json({ message: 'Identifiants invalides.' });
+
+        let passwordValid = await bcrypt.compare(password, admin.password);
+        if (!passwordValid && admin.password === password) {
+            admin.password = await bcrypt.hash(password, 12);
+            await admin.save();
+            passwordValid = true;
+        }
+        if (!passwordValid) return res.status(401).json({ message: 'Identifiants invalides.' });
+
+        const token = jwt.sign({ sub: admin._id.toString(), role: 'admin' }, JWT_SECRET, {
+            expiresIn: JWT_EXPIRES_IN
+        });
+        res.cookie('admin_token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            maxAge: 8 * 60 * 60 * 1000
+        });
+        return res.status(200).json({ token, admin: withoutPassword(admin) });
+    } catch (error) {
+        return handleControllerError(res, error);
     }
 };
