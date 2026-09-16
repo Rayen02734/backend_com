@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+require('dotenv').config();
 
 var adminsRouter = require('./routes/admin.routes');
 var commandesRouter = require('./routes/commandes.routes');
@@ -12,8 +13,6 @@ var paiementsRouter = require('./routes/paiements.routes');
 var produitsRouter = require('./routes/produits.routes');
 
 const http = require('http');
-
-require('dotenv').config();
 
 const { connectDB }= require('./config/mongo.connexion');
 

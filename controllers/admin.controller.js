@@ -1,6 +1,7 @@
 const AdminModel = require('../models/admin.model');
 const ProduitModel = require('../models/produit.model');
 const CommandeModel = require('../models/commande.model');
+const { analyserBoutique } = require('../services/IA.service');
 const { getIdFilter, handleControllerError } = require('./utils.controller');
 
 module.exports. createAdmin = async (req, res) => {
