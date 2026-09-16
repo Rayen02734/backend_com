@@ -150,24 +150,62 @@ module.exports.modifierStatutCommande = async (req, res) => {
 };
 
 module.exports.consulterAnalyse = async (req, res) => {
-	try {
-		const [commandes, produits] = await Promise.all([
-			CommandeModel.find().select('total statut'),
-			ProduitModel.find().select('nom stock')
-		]);
-		const chiffreAffaires = commandes.reduce((total, commande) => total + commande.total, 0);
-		return res.status(200).json({
-			nombreCommandes: commandes.length,
-			chiffreAffaires,
-			commandesParStatut: commandes.reduce((stats, commande) => {
-				stats[commande.statut] = (stats[commande.statut] || 0) + 1;
-				return stats;
-			}, {}),
-			produits: produits.map((produit) => ({ nom: produit.nom, stock: produit.stock }))
-		});
-	} catch (error) {
-		return handleControllerError(res, error);
-	}
+    try {
+        const [commandes, produits] = await Promise.all([
+            CommandeModel.find().select("total statut"),
+            ProduitModel.find().select("nom stock"),
+        ]);
+
+        
+
+        const nombreCommandes = commandes.length;
+
+        const chiffreAffaires = commandes.reduce(
+            (total, commande) => total + Number(commande.total || 0),
+            0
+        );
+
+        const commandesParStatut = commandes.reduce(
+            (stats, commande) => {
+                const statut = commande.statut || "inconnu";
+
+                stats[statut] = (stats[statut] || 0) + 1;
+
+                return stats;
+            },
+            {}
+        );
+
+        const produitsAnalyse = produits.map((produit) => ({
+            nom: produit.nom,
+            stock: Number(produit.stock || 0),
+        }));
+
+
+        const donneesAnalyse = {
+            nombreCommandes,
+            chiffreAffaires,
+            commandesParStatut,
+            produits: produitsAnalyse,
+        };
+
+
+        const analyseIA = await analyserBoutique(donneesAnalyse);
+
+
+        return res.status(200).json({
+            success: true,
+
+            statistiques: donneesAnalyse,
+
+            analyseIA,
+        });
+
+    } catch (error) {
+        console.error("Erreur consulterAnalyse :", error);
+
+        return handleControllerError(res, error);
+    }
 };
 
 
