@@ -12,7 +12,7 @@ router.put('/:id/modifier-produit/:produitId', adminController.modifierProduit);
 router.delete('/:id/supprimer-produit/:produitId', adminController.supprimerProduit);
 router.get('/:id/gerer-stock/:produitId', adminController.gererStock);
 router.get('/:id/consulter-commandes', adminController.consulterCommandes);
-router.get('/:id/modifier-statut-commande/:commandeId', adminController.modifierStatutCommande);
+router.put('/:id/modifier-statut-commande/:commandeId', adminController.modifierStatutCommande);
 router.get('/:id/consulter-analyse', adminController.consulterAnalyse);
 
 module.exports = router;
