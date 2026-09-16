@@ -66,3 +66,45 @@ module.exports.deletePaiement = async (req, res) => {
   }
 };
 
+module.exports.effectuerPaiement = async (req, res) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
+    const paiement = await PaiementModel.findOneAndUpdate(filter, { statut: 'effectue' }, {
+      new: true,
+      runValidators: true
+    }).populate('commande');
+    if (!paiement) return res.status(404).json({ message: 'Paiement introuvable.' });
+    return res.status(200).json(paiement);
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+
+module.exports.verifierPaiement = async (req, res) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
+    const paiement = await PaiementModel.findOne(filter).populate('commande');
+    if (!paiement) return res.status(404).json({ message: 'Paiement introuvable.' });
+    return res.status(200).json({ valide: paiement.statut === 'effectue', paiement });
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+
+module.exports.rembourser = async (req, res) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
+    const paiement = await PaiementModel.findOneAndUpdate(filter, { statut: 'rembourse' }, {
+      new: true,
+      runValidators: true
+    }).populate('commande');
+    if (!paiement) return res.status(404).json({ message: 'Paiement introuvable.' });
+    return res.status(200).json(paiement);
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+

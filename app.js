@@ -6,7 +6,6 @@ var logger = require('morgan');
 
 
 var adminsRouter = require('./routes/admin.routes');
-var guestsRouter = require('./routes/guests.routes');
 var commandesRouter = require('./routes/commandes.routes');
 var lignesCommandeRouter = require('./routes/lignesCommande.routes');
 var paiementsRouter = require('./routes/paiements.routes');
@@ -31,7 +30,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/admins', adminsRouter);
-app.use('/guests', guestsRouter);
 app.use('/commandes', commandesRouter);
 app.use('/lignes-commandes', lignesCommandeRouter);
 app.use('/paiements', paiementsRouter);

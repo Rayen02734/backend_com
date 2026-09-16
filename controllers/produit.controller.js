@@ -66,3 +66,41 @@ module.exports. deleteProduit = async (req, res) => {
   }
 };
 
+module.exports.verifierStock = async (req, res) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    const quantite = Number(req.query.quantite || 1);
+    if (!filter || !Number.isInteger(quantite) || quantite < 1) {
+      return res.status(400).json({ message: 'Produit ou quantite invalide.' });
+    }
+    const produit = await ProduitModel.findOne(filter);
+    if (!produit) return res.status(404).json({ message: 'Produit introuvable.' });
+    return res.status(200).json({ disponible: produit.stock >= quantite, stock: produit.stock });
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+
+module.exports.modifierStock = async (req, res, variation) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    const quantite = Number(req.body.quantite);
+    if (!filter || !Number.isInteger(quantite) || quantite < 1) {
+      return res.status(400).json({ message: 'Produit ou quantite invalide.' });
+    }
+    const produit = await ProduitModel.findOne(filter);
+    if (!produit) return res.status(404).json({ message: 'Produit introuvable.' });
+    if (variation < 0 && produit.stock < quantite) {
+      return res.status(409).json({ message: 'Stock insuffisant.' });
+    }
+    produit.stock += variation * quantite;
+    await produit.save();
+    return res.status(200).json(produit);
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+
+module.exports.diminuerStock = (req, res) => module.exports.modifierStock(req, res, -1);
+module.exports.augmenterStock = (req, res) => module.exports.modifierStock(req, res, 1);
+

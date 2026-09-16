@@ -28,8 +28,7 @@ const commandeSchema = new mongoose.Schema({
   },
   guest: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Guest',
-    required: true
+    ref: 'Guest'
   },
   admin: {
     type: mongoose.Schema.Types.ObjectId,

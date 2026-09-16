@@ -66,3 +66,17 @@ module.exports.deleteLigneCommande = async (req, res) => {
   }
 };
 
+module.exports.calculerSousTotal = async (req, res) => {
+  try {
+    const filter = getIdFilter(req.params.id);
+    if (!filter) return res.status(400).json({ message: 'Identifiant invalide.' });
+    const ligneCommande = await LigneCommandeModel.findOne(filter);
+    if (!ligneCommande) return res.status(404).json({ message: 'Ligne de commande introuvable.' });
+    ligneCommande.sousTotal = ligneCommande.quantite * ligneCommande.prixUnitaire;
+    await ligneCommande.save();
+    return res.status(200).json(await populateLigneCommande(LigneCommandeModel.findById(ligneCommande._id)));
+  } catch (error) {
+    return handleControllerError(res, error);
+  }
+};
+

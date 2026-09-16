@@ -1,4 +1,6 @@
 const AdminModel = require('../models/admin.model');
+const ProduitModel = require('../models/produit.model');
+const CommandeModel = require('../models/commande.model');
 const { getIdFilter, handleControllerError } = require('./utils.controller');
 
 module.exports. createAdmin = async (req, res) => {
@@ -59,6 +61,110 @@ module.exports.deleteAdmin = async (req, res) => {
 		if (!admin) return res.status(404).json({ message: 'Admin introuvable.' });
 
 		return res.status(204).send();
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.ajouterProduit = async (req, res) => {
+	try {
+		const adminFilter = getIdFilter(req.params.id);
+		if (!adminFilter) return res.status(400).json({ message: 'Identifiant invalide.' });
+		const admin = await AdminModel.findOne(adminFilter);
+		if (!admin) return res.status(404).json({ message: 'Admin introuvable.' });
+
+		const produit = await ProduitModel.create({ ...req.body, admin: admin._id });
+		return res.status(201).json(await ProduitModel.findById(produit._id).populate('admin'));
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.modifierProduit = async (req, res) => {
+	try {
+		const produitFilter = getIdFilter(req.params.produitId);
+		if (!produitFilter) return res.status(400).json({ message: 'Identifiant invalide.' });
+		const produit = await ProduitModel.findOneAndUpdate(produitFilter, req.body, {
+			new: true,
+			runValidators: true
+		}).populate('admin');
+		if (!produit) return res.status(404).json({ message: 'Produit introuvable.' });
+		return res.status(200).json(produit);
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.supprimerProduit = async (req, res) => {
+	try {
+		const produitFilter = getIdFilter(req.params.produitId);
+		if (!produitFilter) return res.status(400).json({ message: 'Identifiant invalide.' });
+		const produit = await ProduitModel.findOneAndDelete(produitFilter);
+		if (!produit) return res.status(404).json({ message: 'Produit introuvable.' });
+		return res.status(204).send();
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.gererStock = async (req, res) => {
+	try {
+		const produitFilter = getIdFilter(req.params.produitId);
+		const quantite = Number(req.body.quantite);
+		if (!produitFilter || !Number.isInteger(quantite) || quantite === 0) {
+			return res.status(400).json({ message: 'Produit ou quantite invalide.' });
+		}
+		const produit = await ProduitModel.findOne(produitFilter);
+		if (!produit) return res.status(404).json({ message: 'Produit introuvable.' });
+		if (produit.stock + quantite < 0) return res.status(409).json({ message: 'Stock insuffisant.' });
+		produit.stock += quantite;
+		await produit.save();
+		return res.status(200).json(produit);
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.consulterCommandes = async (req, res) => {
+	try {
+		const commandes = await CommandeModel.find().populate('guest admin');
+		return res.status(200).json(commandes);
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.modifierStatutCommande = async (req, res) => {
+	try {
+		const filter = getIdFilter(req.params.commandeId);
+		if (!filter || !req.body.statut) return res.status(400).json({ message: 'Commande ou statut invalide.' });
+		const commande = await CommandeModel.findOneAndUpdate(filter, { statut: req.body.statut }, {
+			new: true,
+			runValidators: true
+		}).populate('guest admin');
+		if (!commande) return res.status(404).json({ message: 'Commande introuvable.' });
+		return res.status(200).json(commande);
+	} catch (error) {
+		return handleControllerError(res, error);
+	}
+};
+
+module.exports.consulterAnalyse = async (req, res) => {
+	try {
+		const [commandes, produits] = await Promise.all([
+			CommandeModel.find().select('total statut'),
+			ProduitModel.find().select('nom stock')
+		]);
+		const chiffreAffaires = commandes.reduce((total, commande) => total + commande.total, 0);
+		return res.status(200).json({
+			nombreCommandes: commandes.length,
+			chiffreAffaires,
+			commandesParStatut: commandes.reduce((stats, commande) => {
+				stats[commande.statut] = (stats[commande.statut] || 0) + 1;
+				return stats;
+			}, {}),
+			produits: produits.map((produit) => ({ nom: produit.nom, stock: produit.stock }))
+		});
 	} catch (error) {
 		return handleControllerError(res, error);
 	}
