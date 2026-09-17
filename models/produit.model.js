@@ -26,6 +26,31 @@ const produitSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  auteur: {
+    type: String,
+    trim: true
+  },
+  langue: {
+    type: String,
+    trim: true
+  },
+  genre: {
+    type: String,
+    trim: true
+  },
+  note: {
+    type: Number,
+    min: 0,
+    max: 5
+  },
+  badge: {
+    type: String,
+    trim: true
+  },
+  isbn: {
+    type: String,
+    trim: true
+  },
   type: {
     type: String,
     required: true,

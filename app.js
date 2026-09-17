@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var cors = require('cors');
 
 require('dotenv').config();
 
@@ -11,6 +12,7 @@ var commandesRouter = require('./routes/commandes.routes');
 var lignesCommandeRouter = require('./routes/lignesCommande.routes');
 var paiementsRouter = require('./routes/paiements.routes');
 var produitsRouter = require('./routes/produits.routes');
+var guestsRouter = require('./routes/guests.routes');
 
 const http = require('http');
 
@@ -22,6 +24,10 @@ var app = express();
 
 
 app.use(logger('dev'));
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'https://7ekmatn.netlify.app',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -33,6 +39,7 @@ app.use('/commandes', commandesRouter);
 app.use('/lignes-commandes', lignesCommandeRouter);
 app.use('/paiements', paiementsRouter);
 app.use('/produits', produitsRouter);
+app.use('/guests', guestsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -45,15 +52,15 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  return res.status(err.status || 500).json({
+    message: err.message || 'Une erreur est survenue.'
+  });
 });
 
 const server = http.createServer(app);
-server.listen(process.env.port,()=>{
+server.listen(process.env.PORT || process.env.port || 3000,()=>{
   connectDB();
-  console.log(`Server is running on port ${process.env.port}`);
+  console.log(`Server is running on port ${process.env.PORT || process.env.port || 3000}`);
 });
 
 
