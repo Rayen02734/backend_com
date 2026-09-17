@@ -58,9 +58,9 @@ app.use(function(err, req, res, next) {
 });
 
 const server = http.createServer(app);
-server.listen(process.env.PORT || process.env.port || 3000,()=>{
+server.listen( process.env.port ,()=>{
   connectDB();
-  console.log(`Server is running on port ${process.env.PORT || process.env.port || 3000}`);
+  console.log(`Server is running on port ${process.env.port}`);
 });
 
 
